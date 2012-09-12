@@ -87,6 +87,8 @@ Let me know if you've used this project at your conference and I'll include it b
 
 - [Full Frontal JS conf](http://full-frontal.org)
 - Chirp (twitter's first conference) ([pic](http://twitpic.com/1fmeuu))
+- [beyond tellerrand 2011](http://2011.beyondtellerrand.com)
+- [btPLAY 2012](http://play12.beyondtellerrand.com) ([pic1](http://farm6.staticflickr.com/5034/7112179285_84ee84f1a3_z.jpg) & [pic2](http://farm8.staticflickr.com/7037/7128059037_bdebfe7937_z.jpg))
 - Reasons to be Appy
 
 ## Feedback
