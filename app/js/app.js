@@ -87,7 +87,7 @@ function parseTime(t) {
 }
  
 function parseTiming(t) {
-  t.replace(/.*?([hms]+).*/, function (all, match) {
+  (t+'').replace(/.*?([hms]+).*/, function (all, match) {
     var n = all.replace(new RegExp(match), '') * 1;
 
     if (match === 'ms') {
@@ -107,12 +107,16 @@ function parseTiming(t) {
 }
 
 function findNextSchedule(delayM, after) {
-  var due = null, t = after ? parseTime(after) : (new Date()).getTime() - (delayM);  // wasteful?
-  
-  for (var s in SCHEDULE) {
-    due = s;
-    if (parseTime(s) > t) break;
+  var due = null, 
+      t = after ? parseTime(after) : (new Date()).getTime(),
+      times = Object.keys(SCHEDULE).sort();
+
+  for (var i = 0; i < times.length; i++) {
+    s = times[i];
+    if ((parseTime(s) - delayM) > t) break;
   }
+
+  first = false;
   
   return s;
 }
@@ -133,7 +137,7 @@ function showSchedule(due) {
 }
  
 function schedule() {
-  showSchedule(findNextSchedule(config.showNextScheduleEarlyBy || 0));
+  showSchedule(findNextSchedule(config.timings.showNextScheduleEarlyBy || 0));
 }
  
 function nextDue() {
@@ -384,8 +388,9 @@ function init() {
 
   $('#schedule > div').hide();
 
-  run();
-  schedule();
+  // run();
+  // schedule();
+  showSchedule(findNextSchedule(config.timings.showNextScheduleEarlyBy || 0));
   notices();
   // listenForWinner();
 }
