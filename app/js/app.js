@@ -388,7 +388,7 @@ function init() {
 
   $('#schedule > div').hide();
 
-  // run();
+  run();
   // schedule();
   showSchedule(findNextSchedule(config.timings.showNextScheduleEarlyBy || 0));
   notices();
