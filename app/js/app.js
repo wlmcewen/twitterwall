@@ -107,13 +107,13 @@ function parseTiming(t) {
 }
 
 function findNextSchedule(delayM, after) {
-  var due = null, 
-      t = after ? parseTime(after) : (new Date()).getTime(),
+  var due = null,
+      t = after ? parseTime(after) : window.debugTime || (new Date()).getTime(),
       times = Object.keys(SCHEDULE).sort();
 
   for (var i = 0; i < times.length; i++) {
     s = times[i];
-    if ((parseTime(s) - delayM) > t) break;
+    if ((parseTime(s) + delayM) > t) break;
   }
 
   first = false;
