@@ -415,13 +415,85 @@ var SCHEDULE = {},
     lastDue = null,
     winners = {};
 
+// blocker
+//
+// Test text against a set of criteria. Add text, regexs or a function
+// to match against, and then use blocker.test('some text') to find a
+// match. blocker.test will return true if the text is ok, and false
+// if it finds a match (ie, text is not ok).
+//
+// If you add a callback function it should return true if the text is ok.
+//
+// For example:
+//
+//    // Block anything containing @twitter
+//    blocker.block('@twitter');
+//
+//    // Block anything that's entirely lowercase & spaces
+//    blocker.block(/^[a-z\s]*$/);
+//
+//    // Block the text if it's 'I hate the twitterwall!'
+//    blocker.block(function (test) {
+//      return (test !== 'I hate the twitterwall!');
+//    });
+//
+//    . . .
+//
+//    // Test your text
+//    var textIsOk = blocker.test('Some Text');
+//
+var blocker = (function () {
+  var callbacks = [];
+
+  return {
+    block: function (checker) {
+      // Callback should return true if the text is clean,
+      // false if it should be blocked.
+
+      var cb = function (text) { return true; };
+
+      if (typeof checker === "string") {
+        cb = function (text) {
+          return (text.toLowerCase().indexOf(checker) === -1);
+        };
+      }
+
+      else if (({}).toString.call(checker) === '[object RegExp]') {
+        cb = function (text) {
+          return (text.match(checker) === null);
+        };
+      }
+
+      else if (typeof checker === "function") {
+        cb = checker;
+      }
+
+      return callbacks.push(cb) && cb;
+    },
+    test: function (text) {
+      return callbacks.every(function (cb) {
+        return cb(text);
+      });
+    }
+  };
+}());
+
 var scheduleTimer = setInterval(schedule, 5000);
 
 // start a new queue and on the callback, render the tweet and animate it down
 var twitterQueue = new Queue(config.timings.showTweetsEvery || 3000, function (item) {
   // 1. stuff a new p tag, and animate it up - to force content down (with text:visibility:hidden)
   // 2. drop effect from top of page
-  // 3. once effect complete, remove animated el, and show text to fake effect  
+  // 3. once effect complete, remove animated el, and show text to fake effect
+
+  var tweetText = twitterlib.expandLinks(item);
+
+  var tweetIsOk = blocker.test(tweetText);
+
+  if (!tweetIsOk) {
+    return twitterQueue.next();
+  }
+
   var tweet = $(renderTweet(item));
   var tweetClone = tweet.clone().hide().css({ visibility: 'hidden' }).prependTo('#tweets').slideDown(1000);
  
