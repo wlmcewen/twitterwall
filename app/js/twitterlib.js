@@ -1,62 +1,11 @@
-// twitterlib.js (c) 2011 Remy Sharp
-// @version 1.0.8 / Sun Feb 19 22:37:22 2012 +0000
-// MIT license: http://rem.mit-license.org
-(function (global) {
+/**
+ * This is not twitterlib as you know it.
+ */
+(function (global, undefined) {
   var twitterlib = {};
 
-  // for Node.js - a quasi document polyfill
-  if (typeof exports !== 'undefined' && typeof require === 'function') {
-    var urlparse = require('url').parse,
-        http = require('http');
-
-    this.document = {
-      location: {
-        protocol: 'http:'
-      },
-      head: {
-        appendChild: function (element) {
-          if (!element.src) return; // exit if we're not a script
-          // send request
-          var urldata = urlparse(element.src, true),
-              request = http.createClient(80, urldata.host).request('GET', urldata.pathname + urldata.search, { host: urldata.host }),
-              json = '';
-          var callback = window[urldata.query.callback];
-
-          request.on('response', function (res) {
-            res.setEncoding('utf8');
-            res.on('data', function(chunk) { 
-              json += chunk; 
-            }).on('end', function() {
-              switch (res.statusCode) {
-              case 200:
-                json = json.replace(new RegExp('^' + urldata.query.callback + '\\('), '').replace(/\);*$/, '');
-
-                outstanding[urldata.query.callback] && callback(JSON.parse(json));
-                break;
-              case 304:
-                break;
-              case 401:
-                // console.error('not authed');
-                break;
-              };
-            });
-          }).end();
-        }
-      },
-      getElementById: function () {},
-      createElement: function (type) {
-        return {
-          type: type,
-          id: null,
-          src: ''
-        }
-      }
-    };
-  }
-
-
   var guid = +new Date,
-      window = this,
+      window = global,
       document = window.document,
       head = document.head || document.getElementsByTagName('head')[0],
       last = {}, // memorisation object for the next method
@@ -66,49 +15,52 @@
         '&lt;': '<',
         '&gt;': '>'
       },
-      protocol = document.location.protocol.substr(0, 4) == 'http' ? document.location.protocol : 'http:',
       URLS = {
-        search: protocol + '//search.twitter.com/search.json?q=%search%&page=%page|1%&rpp=%limit|100%&since_id=%since|remove%&result_type=recent&include_entities=true', // TODO allow user to change result_type
-        timeline: protocol + '//api.twitter.com/1/statuses/user_timeline.json?screen_name=%user%&count=%limit|200%&page=%page|1%&since_id=%since|remove%include_rts=%rts|false%&include_entities=true',
-        list: protocol + '//api.twitter.com/1/%user%/lists/%list%/statuses.json?page=%page|1%&per_page=%limit|200%&since_id=%since|remove%&include_entities=true&include_rts=%rts|false%',
-        favs: protocol + '//api.twitter.com/1/favorites/%user%.json?include_entities=true&skip_status=true&page=%page|1%&since_id=%since|remove%',
-        retweets: protocol + '//api.twitter.com/1/statuses/retweeted_by_user.json?screen_name=%user%&include_entities=true&count=%limit|200%&since_id=%since|remove%&page=%page|1%'
+        search: '/1.1/search/tweets.json?q=%search%&rpp=%limit|100%&since_id=%since|remove%&result_type=recent&include_entities=true', // TODO allow user to change result_type
+        timeline: '/1.1/statuses/user_timeline.json?screen_name=%user%&count=%limit|200%&page=%page|1%&since_id=%since|remove%include_rts=%rts|false%&include_entities=true',
+        list: '/1.1/lists/statuses.json?slug=%list%&owner_screen_name=%user%&page=%page|1%&per_page=%limit|200%&since_id=%since|remove%&include_entities=true&include_rts=%rts|false%',
+        favs: '/1.1/favorites/list.json?screen_name=%user%&count=%limit|200%&include_entities=true&skip_status=true&page=%page|1%&since_id=%since|remove%',
+        retweets: '/1.1/statuses/retweeted_by_user.json?screen_name=%user%&include_entities=true&count=%limit|200%&since_id=%since|remove%&page=%page|1%'
       },
       urls = URLS, // allows for resetting debugging
-      undefined,
       caching = false;
-  
+
   var ify = function() {
     return {
+      // Convert known HTML entities to more useful characters
       entities: function (t) {
         return t.replace(/(&[a-z0-9]+;)/g, function (m) {
-          return ENTITIES[m];
+          return ENTITIES[m] || m;
         });
       },
+      // Convert URLs to HTML links
       link: function(t) {
         return t.replace(/[a-z]+:\/\/([a-z0-9-_]+\.[a-z0-9-_:~\+#%&\?\/.=]+[^:\.,\)\s*$])/ig, function(m, link) {
           return '<a title="' + m + '" href="' + m + '">' + ((link.length > 36) ? link.substr(0, 35) + '&hellip;' : link) + '</a>';
         });
       },
+      // Convert @mentions to links to a user's profile
       at: function(t) {
         return t.replace(/(^|[^\w]+)\@([a-zA-Z0-9_]{1,15}(\/[a-zA-Z0-9-_]+)*)/g, function(m, m1, m2) {
           return m1 + '<a href="http://twitter.com/' + m2 + '">@' + m2 + '</a>';
         });
       },
+      // Convert hashtags to links to a search for that hashtag
       hash: function(t) {
         return t.replace(/(^|[^&\w'"]+)\#([a-zA-Z0-9_^"^<]+)/g, function(m, m1, m2) {
           return m.substr(-1) === '"' || m.substr(-1) == '<' ? m : m1 + '<a href="http://search.twitter.com/search?q=%23' + m2 + '">#' + m2 + '</a>';
         });
       },
+      // Linkify, @mention and hashify a tweet.
       clean: function(tweet) {
         return this.hash(this.at(this.link(tweet)));
       }
     };
   }();
-  
+
   var expandLinks = function (tweet) {
     if (tweet === undefined) return '';
-    
+
     var text = tweet.text,
         i = 0;
     if (tweet.entities) {
@@ -118,7 +70,7 @@
           if (tweet.entities.urls[i].expanded_url) text = text.replace(tweet.entities.urls[i].url, tweet.entities.urls[i].expanded_url); // /g ?
         }
       }
-      
+
       // replace media with url to actual image (or thing?)
       if (tweet.entities.media && tweet.entities.media.length) {
         for (i = 0; i < tweet.entities.media.length; i++) {
@@ -127,10 +79,10 @@
       }
 
     }
-    
+
     return text;
   };
-  
+
   var time = function () {
     var monthDict = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return {
@@ -138,7 +90,7 @@
         var hour = date.getHours(),
             min = date.getMinutes() + "",
             ampm = 'AM';
-    
+
         if (hour == 0) {
           hour = 12;
         } else if (hour == 12) {
@@ -147,11 +99,11 @@
           hour -= 12;
           ampm = 'PM';
         }
-    
+
         if (min.length == 1) {
           min = '0' + min;
         }
-    
+
         return hour + ':' + min + ' ' + ampm;
       },
       date: function (date) {
@@ -225,10 +177,10 @@
         }
 
         return r;
-      }    
+      }
     };
   }();
-  
+
   var filter = (function () {
     return {
       match: function (tweet, search, includeHighlighted) {
@@ -238,7 +190,7 @@
         if (typeof search == "string") {
           search = this.format(search);
         }
-        
+
         // loop ignore first
         if (search['not'] && search['not'].length) {
           for (i = 0; i < search['not'].length; i++) {
@@ -319,14 +271,14 @@
             neg = true;
           }
           m = m.replace(/["']+|["']+$/g, '');
-          
+
           if (neg) {
-            negative.push(m.substr(1).toLowerCase()); 
+            negative.push(m.substr(1).toLowerCase());
           } else {
-            blocks.push(m);            
+            blocks.push(m);
           }
         });
-        
+
         for (i = 0; i < blocks.length; i++) {
           if (blocks[i] == 'OR' && blocks[i+1]) {
             ors.push(blocks[i-1].toLowerCase());
@@ -364,16 +316,16 @@
       }
     };
   })();
-    
+
   // based on twitter.com list of tweets, most common format for tweets
   function render(tweet) {
     var html = '<li><div class="tweet">';
-    html += '<div class="vcard"><a href="http://twitter.com/' + tweet.user.screen_name + '" class="url"><img style="height: 48px; width: 48px;" alt="' + tweet.user.name + '" class="photo fn" height="48" src="' + tweet.user.profile_image_url + '" width="48" /></a></div>';  
+    html += '<div class="vcard"><a href="http://twitter.com/' + tweet.user.screen_name + '" class="url"><img style="height: 48px; width: 48px;" alt="' + tweet.user.name + '" class="photo fn" height="48" src="' + tweet.user.profile_image_url + '" width="48" /></a></div>';
     html += '<div class="hentry"><strong><a href="http://twitter.com/';
     html += tweet.user.screen_name + '" ';
     html += 'title="' + tweet.user.name + '">' + tweet.user.screen_name + '</a></strong> ';
     html += '<span class="entry-content">';
-    html += twitterlib.ify.clean(twitterlib.expandLinks(tweet));
+    html += twitterlib.ify.clean(tweet.text); //twitterlib.expandLinks(tweet));
     html += '</span> <span class="meta entry-meta"><a href="http://twitter.com/' + tweet.user.screen_name;
     html += '/status/' + tweet.id_str + '" class="entry-date" rel="bookmark"><span class="published" title="';
     html += twitterlib.time.datetime(tweet.created_at) + '">' + twitterlib.time.relative(tweet.created_at) + '</span></a>';
@@ -390,10 +342,10 @@
       head.removeChild(document.getElementById(twitterlib + guid));
     }
     delete outstanding[twitterlib + guid];
-    window[twitterlib + guid] = undefined; 
+    window[twitterlib + guid] = undefined;
     try{ delete window[ twitterlib + guid ]; } catch(e){}
   }
-    
+
   function load(url, options, callback) {
     var script = document.createElement('script'), match = null;
     if (options == undefined) options = {};
@@ -403,6 +355,19 @@
       return function (tweets) {
         // remove original script include
         var i = 0, parts = [];
+
+        // let's expand the urls by default
+        i = tweets.length;
+        while (i--) {
+          tweets[i].originalText = tweets[i].text;
+          tweets[i].text = expandLinks(tweets[i]);
+        }
+
+        // Search API
+        if (tweets.statuses) {
+          tweets = tweets.statuses;
+        }
+
         if (tweets.results) {
           tweets = tweets.results;
           i = tweets.length;
@@ -411,7 +376,7 @@
           while (i--) {
             tweets[i].user = { id: tweets[i].from_user_id, screen_name: tweets[i].from_user, profile_image_url: tweets[i].profile_image_url };
             tweets[i].source = twitterlib.ify.entities(tweets[i].source);
-            
+
             // fix created_at
             parts = tweets[i].created_at.split(' ');
             tweets[i].created_at = [parts[0],parts[2],parts[1],parts[4],parts[5], parts[3]].join(' ').replace(/,/, '');
@@ -432,37 +397,36 @@
               tweets[i] = tweets[i].retweeted_status;
             }
           }
-          
         }
-        
+
         options.originalTweets = tweets;
         if (options.filter) {
           tweets = filter.matchTweets(tweets, options.filter);
         }
-        
+
         if (options.limit && options.limit < tweets.length) {
           // chop
           tweets = tweets.splice(0, options.limit);
         }
-        
+
         if (caching && options.page > 1) {
           try {
             sessionStorage.setItem('twitterlib.page' + options.page + '.tweets', JSON.stringify(tweets));
-            sessionStorage.setItem('twitterlib.page' + options.page + '.originalTweets', JSON.stringify(options.originalTweets));            
+            sessionStorage.setItem('twitterlib.page' + options.page + '.originalTweets', JSON.stringify(options.originalTweets));
             sessionStorage.setItem('twitterlib.page' + options.page, 'true');
           } catch (e) {
             // possible QUOTA EXCEEDED
           }
         }
-        
+
         options.cached = false;
-        
+
         callback.call(twitterlib, tweets, options);
         // clean up
         clean(guid);
       };
     })(guid, options);
-    
+
     match = url.match(/callback=(.*)/);
     if (match != null && match.length > 1) {
       window[match[1]] = window['twitterlib' + guid];
@@ -478,7 +442,7 @@
     } else if (caching) {
       clean(guid);
       options.cached = true;
-      
+
       options.originalTweets = JSON.parse(sessionStorage.getItem('twitterlib.page' + options.page + '.originalTweets'));
       // reset the tweets - so we can cache but refilter
       var tweets = JSON.parse(sessionStorage.getItem('twitterlib.page' + options.page + '.tweets') || '[]');
@@ -492,20 +456,22 @@
       }
 
       callback.call(twitterlib, tweets, options);
-    } 
+    }
   }
-  
+
   function getUrl(type, options) {
-    return urls[type].replace(/(\b.*?)%(.*?)(\|.*?)?%/g, function (a, q, key, def) {
+    options = options || {};
+    return (twitterlib.baseUrl + urls[type]).replace(/(\b.*?)%(.*?)(\|.*?)?%/g, function (a, q, key, def) {
       // remove empty values that shouldn't be sent
       if (def && def.substr(1) == 'remove' && options[key] == undefined) {
         return '';
       }
+
       var val = key == 'limit' ? options[key] + 10 : options[key];
       return q + (options[key] === undefined && def !== undefined ? def.substr(1) : val);
     });
   }
-  
+
   function normaliseArgs(options, callback) {
     if (typeof options == 'function') {
       callback = options;
@@ -519,9 +485,20 @@
     }
     return options;
   }
-  
+
+  function extend(obj, source) {
+    if (source) {
+      for (var prop in source) {
+        obj[prop] = source[prop];
+      }
+    }
+    return obj;
+  }
+
+  // save the last type of request, with all their options - so we can hit
+  // twitterlib.next() and it'll automagically prepopulate the filters, etc.
   function setLast(method, arg, options) {
-    last = { 
+    last = {
       method: method,
       arg: arg,
       options: options,
@@ -530,16 +507,16 @@
     };
 
     options.method = method;
-    
+
     if (caching) {
       var last_request = JSON.parse(sessionStorage.getItem('twitterlib.last_request') || '{}');
       if (last.method != last_request.method || last.arg != last_request.arg) {
         clearCache();
         sessionStorage.setItem('twitterlib.last_request', JSON.stringify(last));
-      } 
+      }
     }
   }
-  
+
   function clearCache() {
     var i = sessionStorage.length;
     while (i--) {
@@ -548,36 +525,47 @@
       }
     }
   }
-  
+
+  // create a new method on twitterlib, that hits the given url,
+  // i.e. twitterlib.custom('dm', '/proxy.php?page=%page%&type=direct_messages');
+  // can now be called using twitterlib.dm('rem', function (t) { });
   function custom(name, url, defaults) {
-    if (url && urls[name] == undefined) urls[name] = url;
-    if (this[name] == undefined) {
-      this[name] = function (term, options, callback) {
-        // handle "termless" custom methods
-        if (typeof term == 'function') {
-          callback = term;
-          term = '';
-        } else if (term.toString() == '[Object object]') {
-          callback = options;
-          options = term;
-          term = '';
-        }
-        options = normaliseArgs(options, callback);
-        setLast(name, term, options);
-        // slight hack to support my own shortcuts
-        options[name] = options.user = term; 
-        options.search = encodeURIComponent(term);
-        if (options.callback) load(getUrl(name, options), options, options.callback);
-        return this;
-      };
-    }
+    defaults = defaults || {};
+    if (url) urls[name] = url;
+    this[name] = function (term, options, callback) {
+      // handle "termless" custom methods
+      if (typeof term == 'function') {
+        callback = term;
+        term = '';
+      } else if (typeof options == 'function') {
+        callback = options;
+        options = term;
+        term = '';
+      } else if (!options) {
+        options = {};
+        term = '';
+      }
+      options = normaliseArgs(options, callback);
+      setLast(name, term, options);
+      // slight hack to support my own shortcuts
+      options[name] = options.user = term;
+      options.search = encodeURIComponent(term);
+      options = extend(defaults, options);
+      if (options.callback) load(getUrl(name, options), options, options.callback);
+      return this;
+    };
     // makes my code nicer to read when setting up twitterlib object
     return this[name];
   }
-  
+
   twitterlib = {
-    // search is an exception case
+    version: '1.1.5', //@version 1.1.5 / Fri Jun 21 14:02:46 2013 +0100
+    // URL to make requests to. Twitter API 1.1 doesn't support requests from
+    // the browser without exposing the client secret, so twitterlib now assumes
+    // you are using a proxy.
+    baseUrl: '',
     custom: custom,
+    getUrl: getUrl,
     status: function (user, options, callback) { // alias function
       options = normaliseArgs(options, callback);
       options.limit = 1;
@@ -607,7 +595,7 @@
       } // else we won't do anything
       return this;
     },
-    
+
     // appending on pre-existing utilities
     time: time,
     ify: ify,
@@ -633,14 +621,14 @@
     },
     cache: function (enabled) {
       caching = enabled == undefined ? true : enabled;
-      
+
       // cache is only supported if you have native json encoding
       if (!window.JSON || !window.sessionStorage) {
         caching = false;
       }
     }
   };
-  
+
   twitterlib.custom('search');
   twitterlib.custom('timeline');
   twitterlib.custom('favs');
@@ -648,7 +636,7 @@
 
   if (typeof exports !== 'undefined') {
     module.exports = twitterlib;
-  } 
-  
+  }
+
   global.twitterlib = twitterlib;
 })(this);

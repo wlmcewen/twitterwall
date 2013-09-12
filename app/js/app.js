@@ -1,3 +1,11 @@
+/**
+ * Twitterlib setup
+ */
+twitterlib.cache(true);
+
+/**
+ * Tweet Queue
+ */
 function Queue(delay, callback) {
   var q = [],
       timer = null,
@@ -309,33 +317,6 @@ function passToQueue(data, options) {
   }
 }
 
-// function listenForWinner() {
-//   var body = $(document.body);
-//   winners = new WebSocket('ws://node.remysharp.com:8003');
-//   winners.onmessage = function (event) {
-//     var winner = document.getElementById('winner');
-//     body.removeClass('bingo');
-//     if (event.data == 'close') {
-//       body.removeClass('winner');
-//       winner.innerHTML = '';
-//     } else if (event.data == 'bingo') {
-//       body.addClass('bingo');
-//     } else {
-//       body.addClass('winner');
-//       winner.innerHTML = event.data;
-//     }
-//   };
-
-//   // auto reconnect after 2seconds
-//   winners.onclose = function () {
-//     setTimeout(listenForWinner, 2000);
-//   };
-
-//   winners.onerror = function () {
-//     setTimeout(listenForWinner, 2000);
-//   };
-// }
-
 function run() {
   var since_id = 1;
   $(document.body).addClass('run');
@@ -372,6 +353,11 @@ function notices() {
 function init() {
   if (config.title) document.title = config.title;
 
+  // Use the baseUrl from the config to setup twitterlib. This allows it to
+  // run from a proxy, not Twitter's API (which doesn't support from-browser
+  // requests).
+  twitterlib.baseUrl = config.baseUrl;
+
   if (config.debug) {
     twitterlib.debug({
       'list': '../history/data/list%page%.json?callback=callback',
@@ -392,7 +378,6 @@ function init() {
   // schedule();
   showSchedule(findNextSchedule(config.timings.showNextScheduleEarlyBy || 0));
   notices();
-  // listenForWinner();
 }
 
 if (config.timings) {

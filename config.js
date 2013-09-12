@@ -1,4 +1,7 @@
 var config = {
+  // Twitter API (Proxy) URL
+  baseUrl: 'http://localhost:7890',
+
   debug: false,
   title: 'Twitter wall built by @rem',
 
