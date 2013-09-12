@@ -1,10 +1,10 @@
 function Queue(delay, callback) {
-  var q = [], 
-      timer = null, 
-      processed = {}, 
-      empty = null, 
+  var q = [],
+      timer = null,
+      processed = {},
+      empty = null,
       ignoreRT = twitterlib.filter.format('-"RT @"'); // if you want to reuse this queue, ditch this reference
-  
+
   function process() {
     var item = null;
     if (q.length) {
@@ -15,25 +15,25 @@ function Queue(delay, callback) {
     }
     return this;
   }
-  
+
   return {
     push: function (item) {
       var i;
       if (!(item instanceof Array)) {
         item = [item];
       }
-      
+
       if (timer == null && q.length == 0) {
         this.start();
       }
-      
+
       for (i = 0; i < item.length; i++) {
         if (!processed[item[i].id_str] && twitterlib.filter.match(item[i], ignoreRT)) {
           processed[item[i].id_str] = true;
           q.push(item[i]);
         }
       }
-      
+
       // resort the q
       q = q.sort(function (a, b) {
         return a.id_str > b.id_str ? 1 : -1;
@@ -63,7 +63,7 @@ function Queue(delay, callback) {
     next: process
   };
 }; //.start();
- 
+
 // selector to find elements below the fold
 $.extend($.expr[':'], {
   below: function (a, i, m) {
@@ -71,21 +71,21 @@ $.extend($.expr[':'], {
     return $(a).offset().top > y;
   }
 });
- 
+
 function parseTime(t) {
   // var parts = t.split(/[:\s]/g),
   //     hour = parts[0] | 0,
   //     min = parts[1] | 0;
- 
+
   // if (parts[2] == 'PM' && hour != 12) hour += 12;
- 
+
   var d = new Date();
   d.setHours(t.substr(0, 2));
   d.setMinutes(t.substr(2, 2));
 
   return d.getTime();
 }
- 
+
 function parseTiming(t) {
   (t+'').replace(/.*?([hms]+).*/, function (all, match) {
     var n = all.replace(new RegExp(match), '') * 1;
@@ -117,10 +117,10 @@ function findNextSchedule(delayM, after) {
   }
 
   first = false;
-  
+
   return s;
 }
- 
+
 function showSchedule(due) {
   if (due != lastDue) {
     lastDue = due;
@@ -135,11 +135,11 @@ function showSchedule(due) {
     }
   }
 }
- 
+
 function schedule() {
   showSchedule(findNextSchedule(config.timings.showNextScheduleEarlyBy || 0));
 }
- 
+
 function nextDue() {
   clearInterval(scheduleTimer);
   showSchedule(findNextSchedule(0, lastDue));
@@ -153,7 +153,7 @@ function nextSchedule() {
 
   showSchedule(keys[i]);
 }
- 
+
 function getInstagram(id, url) {
   window['embed' + id] = function (data) {
     if (data.type == 'photo') {
@@ -223,22 +223,22 @@ function loadImage(id, url) {
 // John Resig - http://ejohn.org/ - MIT Licensed
 (function(){
   var cache = {};
-  
+
   this.tmpl = function tmpl(str, data){
     // Figure out if we're getting a template, or if we need to
     // load the template - and be sure to cache the result.
     var fn = !/\W/.test(str) ?
       cache[str] = cache[str] ||
         tmpl(document.getElementById(str).innerHTML) :
-      
+
       // Generate a reusable function that will serve as a template
       // generator (and which will be cached).
       new Function("obj",
         "var p=[],print=function(){p.push.apply(p,arguments);};" +
-        
+
         // Introduce the data as local variables using with(){}
         "with(obj){p.push('" +
-        
+
         // Convert the template into pure JavaScript
         str
           .replace(/[\r\t\n]/g, " ")
@@ -249,7 +249,7 @@ function loadImage(id, url) {
           .split("%>").join("p.push('")
           .split("\r").join("\\'")
       + "');}return p.join('');");
-    
+
     // Provide some basic currying to the user
     return data ? fn( data ) : fn;
   };
@@ -296,19 +296,19 @@ function renderTweet(data) {
     embeds: embeds,
     tweet: twitterlib.ify.clean(twitterlib.expandLinks(data))
   });
-  
+
   // since_id is a global tracker to ensure we only hit Twitter for *new* tweets
   since_id = data.id;
-  
+
   return html;
 }
- 
+
 function passToQueue(data, options) {
   if (data.length) {
     twitterQueue.push(data.reverse());
   }
 }
-  
+
 // function listenForWinner() {
 //   var body = $(document.body);
 //   winners = new WebSocket('ws://node.remysharp.com:8003');
@@ -325,7 +325,7 @@ function passToQueue(data, options) {
 //       winner.innerHTML = event.data;
 //     }
 //   };
-  
+
 //   // auto reconnect after 2seconds
 //   winners.onclose = function () {
 //     setTimeout(listenForWinner, 2000);
@@ -366,7 +366,7 @@ function notices() {
       setTimeout(show, customTiming || config.timings.defaultNoticeHoldTime || 10 * 1000);
     };
     show();
-  } 
+  }
 }
 
 function init() {
@@ -374,7 +374,7 @@ function init() {
 
   if (config.debug) {
     twitterlib.debug({
-      'list': '../history/data/list%page%.json?callback=callback', 
+      'list': '../history/data/list%page%.json?callback=callback',
       'search': '../history/data/search%page%.json?callback=callback'
     });
   }
@@ -414,6 +414,10 @@ var SCHEDULE = {},
     tweetTemplate = tmpl('tweet_template'),
     lastDue = null,
     winners = {};
+
+// Element cache
+var $tweets = $('#tweets'),
+    $scheduleContainer = $('#schedule');
 
 // blocker
 //
@@ -486,30 +490,29 @@ var twitterQueue = new Queue(config.timings.showTweetsEvery || 3000, function (i
   // 2. drop effect from top of page
   // 3. once effect complete, remove animated el, and show text to fake effect
 
-  var tweetText = twitterlib.expandLinks(item);
-
-  var tweetIsOk = blocker.test(tweetText);
+  var tweetText = twitterlib.expandLinks(item),
+      tweetIsOk = blocker.test(tweetText);
 
   if (!tweetIsOk) {
     return twitterQueue.next();
   }
 
-  var tweet = $(renderTweet(item));
-  var tweetClone = tweet.clone().hide().css({ visibility: 'hidden' }).prependTo('#tweets').slideDown(1000);
- 
-  tweet.css({ top: -200, position: 'absolute' }).prependTo('#tweets').animate({
+  var tweet = $(renderTweet(item)),
+      tweetClone = tweet.clone().hide().css({ visibility: 'hidden' }).prependTo($tweets).slideDown(1000);
+
+  tweet.css({ top: -200, position: 'absolute' }).prependTo($tweets).animate({
     top: 0
   }, 1000, function () {
     tweetClone.css({ visibility: 'visible' });
     $(this).remove();
   });
-  
+
   // remove elements that aren't visible
-  $('#tweets p:below(' + window.innerHeight + ')').remove();
+  $tweets.find('p:below(' + window.innerHeight + ')').remove();
 }).empty(run);
 
 // click on the schedule to move forward (for testing)
-$('#schedule').click(nextDue);
+$scheduleContainer.click(nextDue);
 
 // space pauses twitter feed
 $(window).keydown(function (event) {
