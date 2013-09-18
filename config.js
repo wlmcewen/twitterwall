@@ -1,4 +1,7 @@
 var config = {
+  // Twitter API (Proxy) URL
+  baseUrl: 'http://localhost:7890',
+
   debug: false,
   title: 'Twitter wall built by @rem',
 
@@ -15,4 +18,4 @@ var config = {
 // allows reuse in the node script
 if (typeof exports !== 'undefined') {
   module.exports = config;
-} 
+}
