@@ -96,6 +96,7 @@ Let me know if you've used this project at your conference and I'll include it b
 - Reasons to be Appy ([pic1](http://farm4.staticflickr.com/3666/10582556835_4bac49f24f_b.jpg), [pic2](http://farm4.staticflickr.com/3816/10582561915_84e7b1d448_b.jpg), [pic3](http://farm4.staticflickr.com/3778/10582609074_3a1e31260d_b.jpg))
 - [beyond tellerrand 2012](http://2012.beyondtellerrand.com) ([pic1](http://farm9.staticflickr.com/8480/8221718069_a73a5ab015_o.jpg) & [pic2](http://farm9.staticflickr.com/8197/8219459243_74ba503dea_o.jpg))
 - [All Your Base 2012](http://allyourbaseconf.com/2012/) ([pic1](http://farm6.staticflickr.com/5493/10582898233_2069b69685_b.jpg), [pic2](http://farm4.staticflickr.com/3750/10582906763_f22d4262c0_b.jpg), [video](http://vimeo.com/78026516))
+- [jQuery UK 2013](http://events.jquery.org/2013/uk/) ([pic1](http://farm4.staticflickr.com/3670/10582663285_4e42e21155_b.jpg), [pic2](http://farm3.staticflickr.com/2814/10582740174_0d35b2cc71_b.jpg), [pic3](http://farm6.staticflickr.com/5495/10582691656_a028a53c8c_b.jpg))
 
 ## Feedback
 
