@@ -1,100 +1,174 @@
 <!DOCTYPE html>
-<html lang="en"> 
-<head> 
-<meta charset="utf-8" /> 
-<title>Conference Twitter Wall</title> 
-<link rel="stylesheet" type="text/css" href="app/screen.css">
+<html>
 
-<!-- make your customisations to the twitter wall using the custom.css -->
-<link rel="stylesheet" type="text/css" href="custom.css">
-</head> 
-<body class="hflex-wrapper"> 
-  <div class="vflex-wrapper50"> 
-    <div id="schedule">
-      <!-- style the schedule as you please -->
-      <div id="remy" data-time="0940">
-        <p>Next: 9:40am</p><h2>Remy Sharp <a href="http://twitter.com/rem">@rem</a></h2><h3>Welcome to #fullfrontalconf</h3>
-      </div>
-      <div id="jeremy" data-time="0950">
-        <p>Next: 9:50am</p><h2>Jeremy Ashkenas <a href="http://twitter.com/jashkenas">@jashkenas</a></h2><h3>CoffeeScript Design Decisions</h3>
-      </div>
-      <div id="phil" data-time="1030">
-        <p>Next: 10:30am</p><h2>Phil Hawksworth <a href="http://twitter.com/philhawksworth">@philhawksworth</a></h2><h3>Excessive Enhancement</h3>
-      </div>
-      <div id="break1" data-time="1110">
-        <p>Next: 11:10am</p><h3>Break</h3><p>Back in 30 minutes</p>
-      </div>
-      <div id="marijn" data-time="1140">
-        <p>Next: 11:40am</p><h2>Marijn Haverbeke <a href="http://twitter.com/marijnjh">@marijnjh</a></h2><h3>Respectable code-editing in the browser</h3>
-      </div>
-      <div id="rik" data-time="1220">
-        <p>Next: 12:20pm</p><h2>Rik Arends <a href="http://twitter.com/rikarends">@rikarends</a></h2><h3>How we Architected Cloud9 IDE for scale on NodeJS</h3>
-      </div>
-      <div id="nicholas" data-time="1430">
-        <p>Next: 2:30pm</p><h2>Nicholas Zakas <a href="http://twitter.com/slicknet">@slicknet</a></h2><h3>Scalable JavaScript Application Architecture</h3>
-      </div>
-      <div id="glenn" data-time="1510">
-        <p>Next: 3:10pm</p><h2>Glenn Jones <a href="http://twitter.com/glennjones">@glennjones</a></h2><h3>Beyond the page</h3>
-      </div>
-      <div id="break2" data-time="1550">
-        <p>Next: 3:50pm</p><h3>Break</h3><p>Back in 30 minutes</p>
-      </div>
-      <div id="brendan" data-time="1620">
-        <p>Next: 4:20pm</p><h2>Brendan Dawes <a href="http://twitter.com/brendandawes">@brendandawes</a></h2><h3>Beyond The Planet Of The Geeks</h3>
-      </div>
-      <div id="marcin" data-time="1700">
-        <p>Next: 5:00pm</p><h2>Marcin Wichary <a href="http://twitter.com/mwichary">@mwichary</a></h2><h3>You gotta do what you gotta do</h3>
-      </div>
-      <div id="party" data-time="1900">
-        <h3>Party 7:00pm @ The Loft</h3><h2><a href="http://ffconf.com/party">http://ffconf.com/party</a></h2>
-      </div>
-    </div> 
-    <div id="notices">
-      <!-- here you create divs that are shown on a rotation, add fullscreen class, and customise the hold time with data-hold-time="3s" -->
-      <div id="notice1">
-        <img src="/images/sample/sponsors.png">
-      </div>
-      <div id="notice2">
-        Panel 2
-      </div>
-      <div id="notice3" data-hold-time="3s" class="fullscreen">
-        Panel 3
-      </div>
-    </div> 
-  </div>
-  <div id="twitterwall"> 
-    <ul id="tweets"></ul> 
-  </div> 
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Twitterwall : A twitter wall for conferences that include tweets, schedule and notices (like sponsorship)" />
 
-  <script type="text/html" id="tweet_template">
-    <li id="<%=id%>">
-      <div class="tweet">
-        <div class="vcard">
-          <a href="http://twitter.com/<%=screen_name%>" class="url"><img style="height: 48px; width: 48px;" alt="@<%=screen_name%>" class="photo fn" height="48" src="<%=profile_image_url%>" width="48" /></a>
-        </div>
-        <div class="hentry">
-          <strong><a href="http://twitter.com/<%=screen_name%>" title="<%=name%>"><%=screen_name%></a></strong> 
-          <span class="entry-content"><%=tweet%></span>
-          <span class="meta entry-meta"><a href="http://twitter.com/<%=screen_name%>/status/<%=id%>" class="entry-date" rel="bookmark"><span class="published" title="<%=created_at%>"><%=nice_date%></span></a></span>
-        </div>
-        <% if (embeds.length) for (var i = 0; i < embeds.length; i++) { %>
-        <%=embeds[i]%>
-        <% } %>
-      </div>
-    </li>
-  </script>
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
+    <title>Twitterwall</title>
+  </head>
 
-  <script src="config.js"></script>
-  <script src="app/js/twitterlib.js"></script> 
-  <script src="app/js/jquery.min.js"></script> 
-  <script src="app/js/app.js"></script>
-</body> 
-</html> 
- 
- 
- 
- 
- 
- 
- 
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/wlmcewen/twitterwall">View on GitHub</a>
+
+          <h1 id="project_title">Twitterwall</h1>
+          <h2 id="project_tagline">A twitter wall for conferences that include tweets, schedule and notices (like sponsorship)</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/wlmcewen/twitterwall/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/wlmcewen/twitterwall/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="a-conference-twitter-wall-with-built-in-schedule--announcements" class="anchor" href="#a-conference-twitter-wall-with-built-in-schedule--announcements"><span class="octicon octicon-link"></span></a>A conference twitter wall with built in schedule &amp; announcements</h1>
+
+<p><img src="http://i.imgur.com/LdPaw.png" alt="Example of 2010 conference wall"></p>
+
+<p>This twitter wall is preloaded with the <a href="http://full-frontal.org">Full Frontal JavaScript Conference</a> details, but is easy to change and customise.</p>
+
+<p>JavaScript customisation happens in <code>config.js</code> and style customisations in <code>custom.css</code>.</p>
+
+<h2>
+<a name="running-the-wall" class="anchor" href="#running-the-wall"><span class="octicon octicon-link"></span></a>Running the wall</h2>
+
+<p>Due to Twitter API 1.1 changes, the twitter wall requires a Twitter API proxy. The proxy allows you to make requests to Twitter's API from the browser. If you're a Node user, you can use Left Logic's <a href="https://github.com/leftlogic/twitter-proxy">twitter-proxy</a>. Whatever proxy you choose to use, you need to tell the wall about it. To do so, modify the <code>baseUrl</code> in config.js.</p>
+
+<h2>
+<a name="tweets" class="anchor" href="#tweets"><span class="octicon octicon-link"></span></a>Tweets</h2>
+
+<p>The twitter wall is able to both search for tweets and source tweets from a twitter list (though this is optional).</p>
+
+<p>In the <code>config.js</code> you will want to set some values:</p>
+
+<ul>
+<li>
+<code>search</code> is the same string you would search twitter for to find tweets about your conference. The example provided in the <code>config.js</code> you can see includes multiple search phrases, so don't be coy!</li>
+<li>
+<code>list</code> allows you to curate a list on twitter of all your attendees and capture those tweets mixed in with the search results. This is an optional value.</li>
+<li>
+<code>timings.showTweetsEvery</code> gives you control of when to show each new tweet. The way this app works is collects (about 200) tweets in one go, then gradually shows them all, this <code>showTweetsEvery</code> value controls the rate that they're shown. The value must be in a valid timing value (see below)</li>
+</ul><p>To customise the HTML for the individual tweets, find the template in <code>index.html</code> and edit <code>#tweet_template</code>.</p>
+
+<h2>
+<a name="saving-tweets" class="anchor" href="#saving-tweets"><span class="octicon octicon-link"></span></a>Saving tweets</h2>
+
+<p>I've included a simple <a href="http://nodejs.org">Node</a> app that will capture tweets as files both for debugging later, but also so you have a backup copy of all the tweets from the day (or days):</p>
+
+<pre><code>$ cd history
+$ node server.js
+</code></pre>
+
+<p>This will read the <code>config.js</code> file and capture the tweets in the <code>history/data</code> directory.  Setting the <code>debug</code> flag will then make use of these tweets and ignore the <code>search</code> value.</p>
+
+<h2>
+<a name="timing-values" class="anchor" href="#timing-values"><span class="octicon octicon-link"></span></a>Timing values</h2>
+
+<p>A timing values are simply strings that are converted to JavaScript times. Simple to understand (I hope):</p>
+
+<ul>
+<li>"10m" is 10 minutes</li>
+<li>"5.5m" is 5 minutes, 30 seconds (as it's a floating point, and not minutes and seconds)</li>
+<li>"1h" is 1 hour</li>
+<li>"10s" is 10 seconds</li>
+<li>"100ms" is 100 milliseconds</li>
+</ul><h2>
+<a name="schedule" class="anchor" href="#schedule"><span class="octicon octicon-link"></span></a>Schedule</h2>
+
+<p>Open <code>index.html</code> and find the <code>#schedule</code> element. All the <code>div</code>s inside are rotated throughout the day. The important attribute is the <code>data-time</code> value. This is set to a 24 hour clock in hours and minutes so that 3:45pm is represented as <code>&lt;div data-time="1545"&gt;</code>.</p>
+
+<p>When the app starts it will automatically find the schedule element that is due next. By default it will show the next schedule exactly on time, but you can customise this using the <code>config.js</code> settings. Change <code>timings.showNextScheduleEarlyBy</code> to a timing value (like <code>10m</code>) which will show the next schedule 10 minutes ahead of when it's due.</p>
+
+<p>This is useful for when you have talks going on and the screen is being used for slides. Once the talk is finished, you can switch back to the twitter wall and it will be all set to show the next talk.</p>
+
+<p>Edit the <code>custom.css</code> to give your own branded feel to the schedule.</p>
+
+<p>Finally, if you wish to use a full sized background image on the schedule, the current time is applied to the <code>#schedule</code> element, which can be used in <code>custom.css</code>:</p>
+
+<pre><code>#schedule[data-time="0940"] {
+  background-image: url(/images/sample/remy.jpg);
+}
+</code></pre>
+
+<p>In the example above the schedule time matches the time in the <code>data-time</code> property for <em>Remy</em> speaking, so the <code>#schedule</code> element has it's <code>background-image</code> set.</p>
+
+<h2>
+<a name="notices" class="anchor" href="#notices"><span class="octicon octicon-link"></span></a>Notices</h2>
+
+<p>This is a useful area to show sponsors and messages for the conference. Inside <code>index.html</code> find the <code>#notices</code> element and all the <code>div</code>s inside are rotated.  Each notice is shown for the amount of time set in <code>custom.js</code> value <code>timings.defaultNoticeHoldTime</code>, but this can be customised for specific notices individually.</p>
+
+<p>A notice is simply a <code>div</code> element. This can hold images, text and so on. To add a custom hold time, add the following attribute: <code>data-hold-time="20s"</code>. This will show that particular notice for 20 seconds.</p>
+
+<p>To make the notice appear over the entire app, add a class of <code>fullscreen</code>. By default this will overlay the entire screen, but if you want to animate this in place, edit the <code>custom.css</code> and edit the <code>fullscreen</code> class so the notice is <em>offscreen</em>, but make sure to restore the value when it's being shown. For example, if the <code>#notice3</code> element should be fullscreen and slide up from the bottom of the screen:</p>
+
+<pre><code>#notices .fullscreen {
+  top: 100%;
+}
+
+#notice3.show {
+  top: 0;
+}
+</code></pre>
+
+<p>Note that the <code>#notice3</code> element has the <code>show</code> class and the <code>top</code> value is set to <code>0</code>. As all the notice elements have animations set on all properties, so the animations should work.</p>
+
+<h2>
+<a name="layout" class="anchor" href="#layout"><span class="octicon octicon-link"></span></a>Layout</h2>
+
+<p>By default the twitter wall takes up full height on the right, but if you edit <code>index.html</code> it's simple to rearrange the elements to suit your needs.  Also look at the <code>hflex-wrapper</code> and other flex-box styles in <code>app/screen.css</code> to see more layout options.</p>
+
+<h2>
+<a name="debugging" class="anchor" href="#debugging"><span class="octicon octicon-link"></span></a>Debugging</h2>
+
+<p>Be wary the more you test this, it's possible to get blocked by Twitter's rate limit. For that, I've included a <code>debug</code> flag in the <code>config.js</code> that will read static tweets (about my own conference, sorry) to populate the twitter wall.</p>
+
+<h2>
+<a name="in-the-wild" class="anchor" href="#in-the-wild"><span class="octicon octicon-link"></span></a>In the wild</h2>
+
+<p>Let me know if you've used this project at your conference and I'll include it below (and feel free to send a pic - it's good for the ego!). So far:</p>
+
+<ul>
+<li><a href="http://full-frontal.org">Full Frontal JS conf</a></li>
+<li>Chirp (twitter's first conference) (<a href="http://twitpic.com/1fmeuu">pic</a>)</li>
+<li><a href="http://2011.beyondtellerrand.com">beyond tellerrand 2011</a></li>
+<li>
+<a href="http://play12.beyondtellerrand.com">btPLAY 2012</a> (<a href="http://farm6.staticflickr.com/5034/7112179285_84ee84f1a3_z.jpg">pic1</a> &amp; <a href="http://farm8.staticflickr.com/7037/7128059037_bdebfe7937_z.jpg">pic2</a>)</li>
+<li>Reasons to be Appy (<a href="http://farm4.staticflickr.com/3666/10582556835_4bac49f24f_b.jpg">pic1</a>, <a href="http://farm4.staticflickr.com/3816/10582561915_84e7b1d448_b.jpg">pic2</a>, <a href="http://farm4.staticflickr.com/3778/10582609074_3a1e31260d_b.jpg">pic3</a>)</li>
+<li>
+<a href="http://2012.beyondtellerrand.com">beyond tellerrand 2012</a> (<a href="http://farm9.staticflickr.com/8480/8221718069_a73a5ab015_o.jpg">pic1</a> &amp; <a href="http://farm9.staticflickr.com/8197/8219459243_74ba503dea_o.jpg">pic2</a>)</li>
+<li>
+<a href="http://allyourbaseconf.com/2012/">All Your Base 2012</a> (<a href="http://farm6.staticflickr.com/5493/10582898233_2069b69685_b.jpg">pic1</a>, <a href="http://farm4.staticflickr.com/3750/10582906763_f22d4262c0_b.jpg">pic2</a>, <a href="http://vimeo.com/78026516">screen capture</a>)</li>
+<li>
+<a href="http://events.jquery.org/2013/uk/">jQuery UK 2013</a> (<a href="http://farm4.staticflickr.com/3670/10582663285_4e42e21155_b.jpg">pic1</a>, <a href="http://farm3.staticflickr.com/2814/10582740174_0d35b2cc71_b.jpg">pic2</a>, <a href="http://farm6.staticflickr.com/5495/10582691656_a028a53c8c_b.jpg">pic3</a>)</li>
+<li>
+<a href="http://allyourbaseconf.com/">All Your Base 2013</a> (<a href="http://farm6.staticflickr.com/5496/10742461514_6326700e9a_b.jpg">pic1</a>, <a href="http://farm4.staticflickr.com/3780/10582771975_23b8d4eb21_b.jpg">pic2</a>, <a href="http://farm8.staticflickr.com/7360/10583050753_0d32588ab5_b.jpg">pic3</a>)</li>
+</ul><h2>
+<a name="feedback" class="anchor" href="#feedback"><span class="octicon octicon-link"></span></a>Feedback</h2>
+
+<p>Please do raise any issues, or even better, send a pull request to improve this project.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Twitterwall maintained by <a href="https://github.com/wlmcewen">wlmcewen</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
